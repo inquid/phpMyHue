@@ -36,7 +36,30 @@ Rules (advanced mode)
 ![screenshot](pmh_rules_advanced.png)
 
 ## Installation
-1. Copy 'phpMyHue' directory and its content in your web server.
+Yii2 Hue
+========
+Yii2 Tools and Interface for Hue lights
+
+Installation
+------------
+
+The preferred way to install this extension is through [composer](http://getcomposer.org/download/).
+
+Either run
+
+```
+php composer.phar require --prefer-dist inquid/yii2-hue "*"
+```
+
+or add
+
+```
+"inquid/yii2-hue": "*"
+```
+
+to the require section of your `composer.json` file.
+
+
 2. Open a browser on your installation url, it should be something like "http://my_web_server/phpMyHue"
 	* **Automatic configuration** begins (bridge detection, user creation, ...) : follow configuration informations in your browser
 
