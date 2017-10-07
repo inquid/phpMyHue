@@ -1,0 +1,21 @@
+{
+    "name": "inquid/yii2-hue",
+    "description": "Yii2 Tools and Interface for Hue lights",
+    "type": "yii2-extension",
+    "keywords": ["yii2","extension","hue","philips","inquid","lights"],
+    "license": "LGPL-3.0+",
+    "authors": [
+        {
+            "name": "inquid",
+            "email": "contact@inquid.co"
+        }
+    ],
+    "require": {
+        "yiisoft/yii2": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "inquid\\hue\\": ""
+        }
+    }
+}
