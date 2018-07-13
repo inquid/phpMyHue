@@ -1,32 +1,55 @@
 <?php
 // Initialize configuration
-//------------------------------------------------
+//---------------------------------------------------
 // If not exists (=first install) : create it
-// If exists : load it
-//------------------------------------------------
+// If exists : load it and re-write it if requested
+//---------------------------------------------------
 // F. Bardin 06/09/2015
-//------------------------------------------------
+//---------------------------------------------------
+// 30/09/2017 : Add re-write config query management
+//---------------------------------------------------
 // Anti-hack
 if (! defined('ANTI_HACK')){exit;}
 
 include 'include/functions.php';
 
-// Define 
-define('INIT', true);
-
 $conf_file = "config.php";
 $template_file = "config.tpl.php";
 
-
 ini_set('default_socket_timeout', 1);
 
-// If config file does not exist : copy template
-if (file_exists("include/$conf_file")){
-	// Read config
+// If config file does not exist : initialization
+if (file_exists("include/$conf_file")){ // config exists
+	@$updconf = $_REQUEST['updconf'];
+
 	include "include/$conf_file";
-} else {
-	// Init parameters
+
+	if (isset($updconf)){ // If config update requested
+		// Backup config parameters sent
+		@$bridgeip_bck = $_REQUEST['bridgeip'];
+		@$username_bck = $_REQUEST['username'];
+		@$lang_bck = $_REQUEST['lang'];
+
+		// Update old config with new parameter(s)
+		if (isset($bridgeip_bck)){$bridgeip = $bridgeip_bck;}
+		if (isset($username_bck)){$username = $username_bck;}
+		if (isset($lang_bck)){$lang = $lang_bck;}
+
+		// Write new config
+		if (! writeConf()){
+			// If problem : reload old config and display error message
+			include "include/$conf_file";
+			$trs = json_decode(implode(file('lang/text_'.$lang.'.json')),true);
+			echo "<H3>".$trs["Problem_for_updating_configuration_file"]."</H3>";
+		}
+	}
+
+} else { // Initialize configuration
+	define('INIT', true);
+
 	@$confstep = $_REQUEST['confstep'];
+
+	// Load config parameters
 	@$bridgeip = $_REQUEST['bridgeip'];
 	@$username = $_REQUEST['username'];
 	@$lang = $_REQUEST['lang'];
@@ -143,7 +166,28 @@ function getUserName(){
 // Function to record configuration
 //----------------------------------------------
 function recordConf(){
-	global $trs,$bridgeip,$username,$lang,$conf_file,$template_file;
+	global $trs,$conf_file,$template_file;
+
+	$conf_html="Y"; 
+	if (! writeConf($conf_html)){// Warning, conf_html is used as reference in the called function. Don't use litteral value.
+		echo "<BR><B>".$trs["Fatal_Error"]."</B> : ".$trs["Automatic_creation_of"]." 'include/$conf_file' ".$trs["failed"].".<BR>";
+		echo "<U>".$trs["Copy_manually"]." 'include/$template_file' ".$trs["to"]." 'include/$conf_file' ".$trs["then_fill_this_file_with_the_following_values"]."</U> :<BR>";
+	} else {
+		echo "<B>".$trs["Configuration_file_created_successfully_with_the_following_values"]." :</B><BR>";
+	}
+	// Echo to screen
+	echo "<BR><DIV STYLE=\"margin:auto;width:500px;border:1px outset #000000;text-align:left;\"><CODE>".$conf_html."</CODE></DIV>";
+
+} // recordConf
+
+//-----------------------------------------------------------------------------------------------
+// Function to (re)write completly config.php file
+// Parameter : conf_html (optional). If set get in return the config file content in html format
+// Return : true/false (true=writing ok, false=error)
+// All config parameters must be already set as global
+//-----------------------------------------------------------------------------------------------
+function writeConf(&$conf_html=""){
+	global $trs,$bridgeip,$username,$lang,$conf_file;
 
 	// Init config content
 	$conf_array = array(
@@ -157,6 +201,8 @@ function recordConf(){
 		"\$lang = \"$lang\";",
 		"?>"
 	);
+
+	// Format array content to be usable
 	$conf_count = count($conf_array);
 	$conf_rec = "";
 	$conf_html = "";
@@ -165,14 +211,9 @@ function recordConf(){
 		$conf_html .= str_replace(" ","&nbsp;",htmlentities($conf_array[$i]))."<BR>\n";
 	}
 
-	if (! file_put_contents("include/$conf_file",$conf_rec)){
-		echo "<BR><B>".$trs["Fatal_Error"]."</B> : ".$trs["Automatic_creation_of"]." 'include/$conf_file' ".$trs["failed"].".<BR>";
-		echo "<U>i".$trs["Copy_manually"]." 'include/$template_file' ".$trs["to"]." 'include/$conf_file' ".$trs["then_fill_this_file_with_the_following_values"]."</U> :<BR>";
-	} else {
-		echo "<B>".$trs["Configuration_file_created_successfully_with_the_following_values"]." :</B><BR>";
-	}
-	// Echo to screen
-	echo "<BR><DIV STYLE=\"margin:auto;width:250px;border:1px outset #000000;text-align:left;\"><CODE>".$conf_html."</CODE></DIV>";
+	// Write conf file
+	if (file_put_contents("include/$conf_file",$conf_rec)){return true;}
+	else {return false;}
+} // writeConf
 
-} // recordConf
 ?>
